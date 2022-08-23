@@ -89,8 +89,7 @@ class _MapLocalState extends State<MapLocal> {
   }
 
   void checkGoogleServicesAvailability() async {
-    _availability = await GoogleApiAvailability.instance
-        .checkGooglePlayServicesAvailability(true);
+    _availability = await GoogleApiAvailability.instance.checkGooglePlayServicesAvailability(false);
     setState(() {});
   }
 
