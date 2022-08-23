@@ -124,12 +124,12 @@ class _MapLocalState extends State<MapLocal> {
   _launchMap({required double lat, required double lon}) async {
     String appleMapsUrl = 'http://maps.apple.com/?daddr=San+Francisco&dirflg=d&t=h';
     String googleMapsUrl = "https://www.google.com/maps/dir/?api=1&origin=$latitude,$longitude&destination=$lat,$lon&travelmode=driving";
-    String petalMapsUrl = "https://www.petalmaps.com/nav/$latitude,$longitude/$lat,$lon/";
+    String petalMapsUrl = "https://www.petalmaps.com/nav/$latitude,$longitude/$lat,$lon/Mi%20ubicaci%C3%B3n/Ubicaci%C3%B3n%20marcada/car";
+
     try {
       if (Platform.isAndroid) {
         if (_availability == GooglePlayServicesAvailability.success) {
-          return await launchUrlString(googleMapsUrl,
-              mode: LaunchMode.externalApplication);
+          return await launchUrlString(googleMapsUrl, mode: LaunchMode.externalApplication);
         }
         return await launchUrlString(petalMapsUrl, mode: LaunchMode.externalApplication);
       } else {
