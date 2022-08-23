@@ -124,7 +124,7 @@ class _MapLocalState extends State<MapLocal> {
 
   _launchMap({required double lat, required double lon}) async {
     String appleMapsUrl = 'http://maps.apple.com/?daddr=San+Francisco&dirflg=d&t=h';
-    String googleMapsUrl = "https://www.google.com/maps/dir/?api=1&origin=$latitude,$longitude&destination=$lat,$lon&travelmode=driving&dir_action=navigate";
+    String googleMapsUrl = "https://www.google.com/maps/dir/?api=1&origin=$latitude,$longitude&destination=$lat,$lon&travelmode=driving";
     Uri petalMapsUrl = Uri.parse("https://www.petalmaps.com/nav/$latitude,$longitude/$lat,$lon");
     try {
       if (Platform.isAndroid) {
