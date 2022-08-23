@@ -1,8 +1,10 @@
 import 'dart:io';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_api_availability/google_api_availability.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 void main() {
   runApp(const MyApp());
@@ -61,87 +63,10 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: SizedBox(
-        height: size.height,
-        child: const MapLocal(),
-      ),
+        body: Column(children: [Expanded(child: MapLocal())]),
     );
   }
 }
-
-/*class CustomPlatformMap extends StatelessWidget {
-  const CustomPlatformMap({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    Size size = MediaQuery.of(context).size;
-    return SizedBox(
-      height: size.height / 2,
-      width: min(size.width * 0.8, 1024),
-      child: PlatformMap(
-        initialCameraPosition: const CameraPosition(
-          target: LatLng(-25.32206, -57.52255),
-          zoom: 16.0,
-        ),
-        mapType: MapType.normal,
-        markers: getMarkers(),
-        myLocationEnabled: true,
-        myLocationButtonEnabled: true,
-        onTap: (location) => print('onTap: $location'),
-        onCameraMove: (cameraUpdate) => print('onCameraMove: $cameraUpdate'),
-        compassEnabled: true,
-        onMapCreated: (controller) {
-          Future.delayed(const Duration(seconds: 2)).then(
-            (_) {
-              controller.animateCamera(
-                CameraUpdate.newCameraPosition(
-                  const CameraPosition(
-                    bearing: 270.0,
-                    target: LatLng(-25.32206, -57.52255),
-                    tilt: 30.0,
-                    zoom: 12,
-                  ),
-                ),
-              );
-            },
-          );
-        },
-      ),
-    );
-  }
-}*/
-
-/*Set<Marker> getMarkers() {
-  return <Marker>{
-    Marker(
-      position: const LatLng(-25.29894, -57.57182),
-      markerId: MarkerId("1"),
-    ),
-    Marker(
-      position: const LatLng(-25.2949, -57.54727),
-      markerId: MarkerId("2"),
-    ),
-    Marker(
-      position: const LatLng(-25.31073, -57.58641),
-      markerId: MarkerId("3"),
-    ),
-    Marker(
-      position: const LatLng(-25.31399, -57.55602),
-      markerId: MarkerId("4"),
-    ),
-    Marker(
-      position: const LatLng(-25.31166, -57.57061),
-      markerId: MarkerId("5"),
-    ),
-    Marker(
-      position: const LatLng(-25.32206, -57.52255),
-      markerId: MarkerId("6"),
-    ),
-  };
-}*/
 
 class MapLocal extends StatefulWidget {
   const MapLocal({Key? key}) : super(key: key);
@@ -152,13 +77,21 @@ class MapLocal extends StatefulWidget {
 
 class _MapLocalState extends State<MapLocal> {
   MapboxMapController? mapController;
-  double latitude = -25.32206, longitude = -57.52255;
+  double latitude = -25.3084198, longitude = -57.6104458;
+  GooglePlayServicesAvailability _availability = GooglePlayServicesAvailability.unknown;
 
   @override
   void initState() {
-    latitude = -25.32206;
-    longitude = -57.52255;
+    if (Platform.isAndroid) {
+      checkGoogleServicesAvailability();
+    }
     super.initState();
+  }
+
+  void checkGoogleServicesAvailability() async {
+    _availability = await GoogleApiAvailability.instance
+        .checkGooglePlayServicesAvailability(true);
+    setState(() {});
   }
 
   @override
@@ -172,76 +105,76 @@ class _MapLocalState extends State<MapLocal> {
   }
 
   void addSymbol(MapboxMapController mapBoxController) {
-    mapBoxController.addSymbol(
-      SymbolOptions(
-        geometry: LatLng(latitude, longitude),
-        iconImage: "assets/images/Marker.png",
-        iconSize: 1,
-      ),
-    );
-  }
-
-  void launchGoogleMaps(
-      {required double latitude, required double longitude}) async {
-    LatLng from = const LatLng(-25.32406, -57.22255);
-
-    final String googleMapsUrl = "https://www.google.com/maps/dir/?api=1&origin=43.7967876,-79.5331616&destination=43.5184049,-79.8473993&waypoints=43.1941283,-79.59179|43.7991083,-79.5339667|43.8387033,-79.3453417|43.836424,-79.3024487&travelmode=driving&dir_action=navigate";
-
-    Uri googleUrl;
-    if (Platform.isIOS) {
-      googleUrl = Uri(
-          scheme: 'https',
-          host: "www.google.com",
-          path: "maps/dir/",
-          queryParameters: {
-            "api": "1",
-            "origin": "43.7967876,-79.5331616",
-            "destination": "43.5184049,-79.8473993",
-          }
-          // queryParameters: {"api": '1', "query": "$latitude,$longitude"},
-          );
-    } else {
-      googleUrl = Uri(
-          scheme: 'https',
-          host: "www.google.com",
-          path: "maps/dir/",
-          queryParameters: {
-            "api": "1",
-            "origin": "43.7967876,-79.5331616",
-            "destination": "43.5184049,-79.8473993",
-          }
-        // queryParameters: {"api": '1', "query": "$latitude,$longitude"},
+    List<LatLng> markersLatLng = getLatLngList();
+    for (var element in markersLatLng) {
+      mapBoxController.addSymbol(
+        SymbolOptions(
+          geometry: LatLng(element.latitude, element.longitude),
+          iconImage: "assets/images/Marker.png",
+          iconSize: 1,
+        ),
       );
     }
 
-    // 'https://www.google.com/maps/search/?api=1&query=$latitude,$longitude';
-    // 'https://www.google.com/maps/dir/-25.32406,+-57.22255/-25.32206,-57.52255/@-25.3022023,-57.4411378,12z/data=!3m1!4b1!4m6!4m5!1m3!2m2!1d-57.22255!2d-25.32406!1m0'
+    mapBoxController.onSymbolTapped.add((argument) {
+      LatLng latLng = argument.options.geometry!;
+      _launchMap(lat: latLng.latitude, lon: latLng.longitude);
+    });
+  }
 
-    print("a");
+  _launchMap({required double lat, required double lon}) async {
+    String appleMapsUrl = 'http://maps.apple.com/?daddr=San+Francisco&dirflg=d&t=h';
+    String googleMapsUrl = "https://www.google.com/maps/dir/?api=1&origin=$latitude,$longitude&destination=$lat,$lon&travelmode=driving&dir_action=navigate";
+    Uri petalMapsUrl = Uri.parse("https://www.petalmaps.com/nav/$latitude,$longitude/$lat,$lon");
     try {
-      await launchUrl(googleUrl, mode: LaunchMode.externalApplication);
+      if (Platform.isAndroid) {
+        if (_availability == GooglePlayServicesAvailability.success) {
+          return await launchUrlString(googleMapsUrl,
+              mode: LaunchMode.externalApplication);
+        }
+        return await launchUrl(petalMapsUrl,
+            mode: LaunchMode.externalApplication);
+      } else {
+        await launchUrlString(appleMapsUrl,
+            mode: LaunchMode.externalApplication);
+        return;
+      }
     } catch (e) {
-      print(e);
+      print(e.toString());
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return MapboxMap(
-      accessToken:
-          'pk.eyJ1IjoiYmFzc2xpbmU1MjgiLCJhIjoiY2w0bHJ5b2lpMDEzazNqcnlsMHR0cXBsOCJ9.TavVMlzmqMwhAnwZZkP_lQ',
+      accessToken: 'pk.eyJ1IjoiYmFzc2xpbmU1MjgiLCJhIjoiY2w0bHJ5b2lpMDEzazNqcnlsMHR0cXBsOCJ9.TavVMlzmqMwhAnwZZkP_lQ',
       onMapCreated: _onMapCreated,
       onStyleLoadedCallback: () => addSymbol(mapController!),
       initialCameraPosition: CameraPosition(
         target: LatLng(latitude, longitude),
-        zoom: 10.0,
+        zoom: 12.0,
       ),
-      onMapClick: (point, latlng) {
-        print(latlng.latitude);
-        launchGoogleMaps(latitude: latitude, longitude: longitude);
-        print(
-            "From Map ${latlng.latitude} |${latlng.latitude} \nFrom Server $latitude||$longitude \n\n");
-      },
     );
   }
+
+  List<LatLng> getLatLngList() {
+    return const [
+      LatLng(-25.28478088337046, -57.56342023086017),
+      LatLng(-25.28871928855482, -57.5710379742296),
+      LatLng(-25.295014964202693, -57.60258569622273),
+      LatLng(-25.296942081089593, -57.57992117416207),
+      LatLng(-25.283944785636074, -57.567152738686566),
+      LatLng(-25.304114478417496, -57.61058117236018),
+      LatLng(-25.302629687990915, -57.64098817093529),
+      LatLng(-25.291493639666992, -57.619502530955614),
+      LatLng(-25.291933089215505, -57.60257001073464),
+      LatLng(-25.29259128610859, -57.597107832448344),
+      LatLng(-25.287267663373203, -57.58794419443268),
+      LatLng(-25.3017543633767, -57.581752309410156),
+      LatLng(-25.287212932309792, -57.56791584095462),
+      LatLng(-25.275580438998546, -57.5764131235925),
+      LatLng(-25.289518423062724, -57.59498316173665),
+    ];
+  }
+
 }
