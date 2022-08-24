@@ -52,7 +52,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void checkGoogleServicesAvailability() async {
     _availability = await GoogleApiAvailability.instance
-        .checkGooglePlayServicesAvailability(true);
+        .checkGooglePlayServicesAvailability(false);
     _loading = false;
     setState(() {});
   }
