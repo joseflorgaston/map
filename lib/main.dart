@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_api_availability/google_api_availability.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
+import 'package:maps_launcher/maps_launcher.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 void main() {
@@ -122,28 +123,7 @@ class _MapLocalState extends State<MapLocal> {
   }
 
   _launchMap({required double lat, required double lon}) async {
-    Uri appleMapsUrl =
-        Uri.parse('http://maps.apple.com/?daddr=San+Francisco&dirflg=d&t=h');
-    Uri googleMapsUrl = Uri.parse(
-        "https://www.google.com/maps/dir/?api=1&origin=$latitude,$longitude&destination=$lat,$lon&travelmode=driving");
-    Uri petalMapsUrl = Uri.parse(
-        "https://www.petalmaps.com/nav/$latitude,$longitude/$lat,$lon/Mi%20ubicaci%C3%B3n/Ubicaci%C3%B3n%20marcada/car");
-
-    try {
-      if (Platform.isAndroid) {
-        if (_availability == GooglePlayServicesAvailability.success) {
-          return await launchUrl(googleMapsUrl,
-              mode: LaunchMode.externalApplication);
-        }
-        return await launchUrl(petalMapsUrl,
-            mode: LaunchMode.externalApplication);
-      } else {
-        await launchUrl(appleMapsUrl, mode: LaunchMode.externalApplication);
-        return;
-      }
-    } catch (e) {
-      print(e.toString());
-    }
+    MapsLauncher.launchCoordinates(lat, lon);
   }
 
   @override
