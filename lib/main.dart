@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_api_availability/google_api_availability.dart';
+import 'package:map_launcher/map_launcher.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:maps_launcher/maps_launcher.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -77,8 +78,8 @@ class MapLocal extends StatefulWidget {
 class _MapLocalState extends State<MapLocal> {
   MapboxMapController? mapController;
   double latitude = -25.3084198, longitude = -57.6104458;
-  GooglePlayServicesAvailability _availability =
-      GooglePlayServicesAvailability.unknown;
+  GooglePlayServicesAvailability _availability = GooglePlayServicesAvailability.unknown;
+  bool showMap = true;
 
   @override
   void initState() {
@@ -123,12 +124,52 @@ class _MapLocalState extends State<MapLocal> {
   }
 
   _launchMap({required double lat, required double lon}) async {
-    MapsLauncher.launchCoordinates(lat, lon);
+    /*if (Platform.isIOS) {
+      var installedMaps = MapLauncher.installedMaps;
+      installedMaps.then((value) => print(value));
+    }*/
+    var installedMaps = MapLauncher.installedMaps;
+    installedMaps.then((value) async {
+      print(value);
+      showMap = false;
+      setState(() {});
+      await showModalBottomSheet(
+          clipBehavior: Clip.hardEdge,
+          context: context,
+          builder: (_context) {
+            return Wrap(
+              children: [
+                for (var item in value)
+                  InkWell(
+                    onTap: () {
+                      MapLauncher.showMarker(
+                          mapType: item.mapType,
+                          coords: Coords(lat, lon),
+                          title: "title",
+                      );
+                    },
+                    child: Container(
+                      width: MediaQuery.of(context).size.width * 0.4,
+                      height: 150,
+                      alignment: Alignment.center,
+                      child: Center(
+                        child: Text(item.mapName),
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          });
+      showMap = true;
+      setState((){});
+    });
+
+    // MapsLauncher.launchCoordinates(lat, lon);
   }
 
   @override
   Widget build(BuildContext context) {
-    return MapboxMap(
+    return showMap ? MapboxMap(
       accessToken: 'pk.eyJ1IjoiYmFzc2xpbmU1MjgiLCJhIjoiY2w0bHJ5b2lpMDEzazNqcnlsMHR0cXBsOCJ9.TavVMlzmqMwhAnwZZkP_lQ',
       onMapCreated: _onMapCreated,
       onStyleLoadedCallback: () => addSymbol(mapController!),
@@ -136,7 +177,7 @@ class _MapLocalState extends State<MapLocal> {
         target: LatLng(latitude, longitude),
         zoom: 12.0,
       ),
-    );
+    ) : const SizedBox();
   }
 
   List<LatLng> getLatLngList() {
