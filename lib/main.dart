@@ -1,10 +1,8 @@
 import 'dart:io';
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_api_availability/google_api_availability.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:url_launcher/url_launcher_string.dart';
 
 void main() {
   runApp(const MyApp());
@@ -63,7 +61,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
     return Scaffold(
-        body: Column(children: [Expanded(child: MapLocal())]),
+      body: Column(children: const [Expanded(child: MapLocal())]),
     );
   }
 }
@@ -78,7 +76,8 @@ class MapLocal extends StatefulWidget {
 class _MapLocalState extends State<MapLocal> {
   MapboxMapController? mapController;
   double latitude = -25.3084198, longitude = -57.6104458;
-  GooglePlayServicesAvailability _availability = GooglePlayServicesAvailability.unknown;
+  GooglePlayServicesAvailability _availability =
+      GooglePlayServicesAvailability.unknown;
 
   @override
   void initState() {
@@ -89,7 +88,8 @@ class _MapLocalState extends State<MapLocal> {
   }
 
   void checkGoogleServicesAvailability() async {
-    _availability = await GoogleApiAvailability.instance.checkGooglePlayServicesAvailability(false);
+    _availability = await GoogleApiAvailability.instance
+        .checkGooglePlayServicesAvailability(false);
     setState(() {});
   }
 
@@ -110,7 +110,7 @@ class _MapLocalState extends State<MapLocal> {
         SymbolOptions(
           geometry: LatLng(element.latitude, element.longitude),
           iconImage: "assets/images/Marker.png",
-          iconSize: 1,
+          iconSize: 1.2,
         ),
       );
     }
@@ -122,18 +122,23 @@ class _MapLocalState extends State<MapLocal> {
   }
 
   _launchMap({required double lat, required double lon}) async {
-    String appleMapsUrl = 'http://maps.apple.com/?daddr=San+Francisco&dirflg=d&t=h';
-    String googleMapsUrl = "https://www.google.com/maps/dir/?api=1&origin=$latitude,$longitude&destination=$lat,$lon&travelmode=driving";
-    String petalMapsUrl = "https://www.petalmaps.com/nav/$latitude,$longitude/$lat,$lon/Mi%20ubicaci%C3%B3n/Ubicaci%C3%B3n%20marcada/car";
+    Uri appleMapsUrl =
+        Uri.parse('http://maps.apple.com/?daddr=San+Francisco&dirflg=d&t=h');
+    Uri googleMapsUrl = Uri.parse(
+        "https://www.google.com/maps/dir/?api=1&origin=$latitude,$longitude&destination=$lat,$lon&travelmode=driving");
+    Uri petalMapsUrl = Uri.parse(
+        "https://www.petalmaps.com/nav/$latitude,$longitude/$lat,$lon/Mi%20ubicaci%C3%B3n/Ubicaci%C3%B3n%20marcada/car");
 
     try {
       if (Platform.isAndroid) {
         if (_availability == GooglePlayServicesAvailability.success) {
-          return await launchUrlString(googleMapsUrl, mode: LaunchMode.externalApplication);
+          return await launchUrl(googleMapsUrl,
+              mode: LaunchMode.externalApplication);
         }
-        return await launchUrlString(petalMapsUrl, mode: LaunchMode.externalApplication);
+        return await launchUrl(petalMapsUrl,
+            mode: LaunchMode.externalApplication);
       } else {
-        await launchUrlString(appleMapsUrl, mode: LaunchMode.externalApplication);
+        await launchUrl(appleMapsUrl, mode: LaunchMode.externalApplication);
         return;
       }
     } catch (e) {
@@ -173,5 +178,4 @@ class _MapLocalState extends State<MapLocal> {
       LatLng(-25.289518423062724, -57.59498316173665),
     ];
   }
-
 }
