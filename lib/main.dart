@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_api_availability/google_api_availability.dart';
@@ -6,6 +7,7 @@ import 'package:map_launcher/map_launcher.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:maps_launcher/maps_launcher.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:webviewx/webviewx.dart';
 
 void main() {
   runApp(const MyApp());
@@ -64,7 +66,15 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
     return Scaffold(
-      body: Column(children: const [Expanded(child: MapLocal())]),
+      body: Column(
+          children: [
+            SizedBox(
+                height: size.height - 300,
+                width: size.width,
+                child: const MapLocal(),
+            ),
+          ],
+      ),
     );
   }
 }
@@ -107,86 +117,62 @@ class _MapLocalState extends State<MapLocal> {
     mapController = mapboxMapController;
   }
 
-  void addSymbol(MapboxMapController mapBoxController) {
+  void addSymbol() {
     List<LatLng> markersLatLng = getLatLngList();
     for (var element in markersLatLng) {
-      mapBoxController.addSymbol(
+      mapController!.addSymbol(
         SymbolOptions(
           geometry: LatLng(element.latitude, element.longitude),
           iconImage: "assets/images/Marker.png",
-          iconSize: 1.2,
+          iconSize: 1.4,
         ),
       );
     }
 
-    mapBoxController.onSymbolTapped.add((argument) {
+    mapController!.onSymbolTapped.add((argument) {
       LatLng latLng = argument.options.geometry!;
       _launchMap(lat: latLng.latitude, lon: latLng.longitude);
     });
+    setState(() {});
   }
 
   _launchMap({required double lat, required double lon}) async {
-    /*if (Platform.isIOS) {
-      var installedMaps = MapLauncher.installedMaps;
-      installedMaps.then((value) => print(value));
-    }*/
+    if (Platform.isAndroid) return MapsLauncher.launchCoordinates(lat, lon);
     var installedMaps = MapLauncher.installedMaps;
     installedMaps.then((value) async {
-      print(value);
       showMap = false;
       setState(() {});
-      await ShowAvailableMaps(value, lat, lon);
+      await showAvailableMaps(value, lat, lon);
       showMap = true;
       setState(() {});
     });
-
-    // MapsLauncher.launchCoordinates(lat, lon);
   }
 
-  Future<dynamic> ShowAvailableMaps(List<AvailableMap> value, double lat, double lon) {
-    return showModalBottomSheet(
-        clipBehavior: Clip.hardEdge,
+  Future<dynamic> showAvailableMaps(
+      List<AvailableMap> values, double lat, double lon) async {
+    return await showCupertinoModalPopup(
         context: context,
-        builder: (_context) {
-          return Wrap(
-            alignment: WrapAlignment.spaceEvenly,
-            children: [
-              for (var item in value)
-                InkWell(
-                  onTap: () {
-                    MapLauncher.showMarker(
-                      mapType: item.mapType,
-                      coords: Coords(lat, lon),
-                      title: "title",
-                    );
-                  },
-                  child: Column(
-                    children: [
-                      Container(
-                        width: MediaQuery.of(context).size.width * 0.4,
-                        height: MediaQuery.of(context).size.width * 0.4,
-                        margin: const EdgeInsets.symmetric(vertical: 5),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        alignment: Alignment.center,
-                        clipBehavior: Clip.hardEdge,
-                        child: SvgPicture.asset(
-                          item.icon,
-                          semanticsLabel: '${item.mapName} Logo',
-                          fit: BoxFit.fill,
-                          width: MediaQuery.of(context).size.width * 0.4,
-                          height: 150,
-                          clipBehavior: Clip.hardEdge,
-                        ),
-                      ),
-                      const SizedBox(height: 5,),
-                      Text(item.mapName),
-                      const SizedBox(height: 5,),
-                    ],
-                  ),
-                ),
-            ],
+        builder: (context) {
+          return CupertinoActionSheet(
+            title: Column(
+              children: [
+                for (var item in values)
+                  Container(
+                    width: MediaQuery.of(context).size.width,
+                    alignment: Alignment.center,
+                    child: TextButton(
+                      onPressed: () {
+                        MapLauncher.showMarker(
+                          mapType: item.mapType,
+                          coords: Coords(lat, lon),
+                          title: "title",
+                        );
+                      },
+                      child: Text("Abrir en ${item.mapName}"),
+                    ),
+                  )
+              ],
+            ),
           );
         });
   }
@@ -198,7 +184,7 @@ class _MapLocalState extends State<MapLocal> {
             accessToken:
                 'pk.eyJ1IjoiYmFzc2xpbmU1MjgiLCJhIjoiY2w0bHJ5b2lpMDEzazNqcnlsMHR0cXBsOCJ9.TavVMlzmqMwhAnwZZkP_lQ',
             onMapCreated: _onMapCreated,
-            onStyleLoadedCallback: () => addSymbol(mapController!),
+            onStyleLoadedCallback: () => addSymbol(),
             initialCameraPosition: CameraPosition(
               target: LatLng(latitude, longitude),
               zoom: 12.0,
@@ -221,6 +207,9 @@ class _MapLocalState extends State<MapLocal> {
       LatLng(-25.29259128610859, -57.597107832448344),
       LatLng(-25.287267663373203, -57.58794419443268),
       LatLng(-25.3017543633767, -57.581752309410156),
+      LatLng(-25.3017543633767, -57.581752309410136),
+      LatLng(-25.3017543633767, -57.581752309410126),
+      LatLng(-25.3017543633767, -57.581752309410153),
       LatLng(-25.287212932309792, -57.56791584095462),
       LatLng(-25.275580438998546, -57.5764131235925),
       LatLng(-25.289518423062724, -57.59498316173665),
